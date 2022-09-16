@@ -1,0 +1,6 @@
+module f where 
+
+a = b; 
+b = c d; 
+c = d b; 
+d : Prop; 

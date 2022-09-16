@@ -1,0 +1,5 @@
+module t where 
+
+t1 : Set; 
+
+term : t1 (forall t2 : Set Set, t2 t1 t5);

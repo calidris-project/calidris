@@ -1,0 +1,5 @@
+module f where 
+
+nat : Set; 
+succ : forall n : nat, nat; 
+invalid = succ Prop;

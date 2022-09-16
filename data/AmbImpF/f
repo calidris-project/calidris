@@ -1,0 +1,5 @@
+module k where 
+
+import k 
+
+haskell : forall x : Set, Set x;
