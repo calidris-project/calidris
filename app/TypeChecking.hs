@@ -99,19 +99,27 @@ normaliseExpr
   -> Expr ResolvedName 
     -- The expression or subexpression being reduced.
   -> Expr ResolvedName
-normaliseExpr d g (Identifier (annVal -> UniqueName u))
-  | Just v <- M.lookup u g = applyShift 0 d <$> v
-normaliseExpr d g (Forall x t e) =
-  Forall x (normaliseExpr d g t) (normaliseExpr (d + 1) g e)
-normaliseExpr d g (Abs x t e) =
-  Abs x (normaliseExpr d g t) (normaliseExpr (d + 1) g e)
-normaliseExpr d g (Let _ _ v e) = 
-  normaliseExpr d g (replaceLvl 0 d v e)
-normaliseExpr d g (App (Abs _ _ e) v) = normaliseExpr d g (replaceLvl 0 d v e) 
-normaliseExpr d g (App a b) =
-  let norm = normaliseExpr d g; a' = norm a; b' = norm b in 
-      if a' /= a || b' /= b then norm (App a' b') else App a' b'  
-normaliseExpr _ _ x = x
+normaliseExpr d g e = snd $ go d g e
+  where
+    -- keep track of whether the expression has been updated
+    go d g (Identifier (annVal -> UniqueName u)) 
+      | Just v <- M.lookup u g 
+      = (True, snd . go d g $ applyShift 0 d <$> v)
+    go d g (Forall x t e) = 
+      let (b1, t') = go d g t 
+          (b2, e') = go (d + 1) g e 
+      in (b1 || b2, Forall x t' e')
+    go d g (Abs x t e) =
+      let (b1, t') = go d g t 
+          (b2, e') = go (d + 1) g e 
+      in (b1 || b2, Abs x t' e')
+    go d g (Let _ _ v e) = (True, snd . go d g $ replaceLvl 0 d v e)
+    go d g (App (Abs _ _ e) v) = (True, snd . go d g $ replaceLvl 0 d v e)
+    go d g (App a b) = 
+      let (b1, a') = go d g a
+          (b2, b') = go d g b
+      in if b1 || b2 then (True, snd . go d g $ App a' b') else (False, App a' b')  
+    go _ _ x = (False, x)
 
 -- * Type checking
 
@@ -179,9 +187,9 @@ checkConvertible
     -> Expr ResolvedName
     -> Either CustomBundle ()
 checkConvertible p d g a b 
-    = case isConvertible (normaliseExpr d g a) (normaliseExpr d g b) of 
-        True -> pure () 
-        False -> Left (mkBundleError TypeError p)
+    = if isConvertible (normaliseExpr d g a) (normaliseExpr d g b)
+        then pure ()
+        else Left (mkBundleError TypeError p)
 
 -- | Forms a type for an expression or subexpression. 
 formType 
