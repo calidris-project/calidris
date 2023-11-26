@@ -68,7 +68,12 @@ data LocAnn x = LocAnn
     annLen :: Int,
     annVal :: x
   } | NoLoc {annVal :: x}
-  deriving (Eq, Foldable, Functor, Traversable)
+  deriving (Foldable, Functor, Traversable)
+
+instance Eq x => Eq (LocAnn x) where
+  NoLoc x == NoLoc y = x == y
+  LocAnn a b c d == LocAnn a' b' c' d' = (pstateSourcePos a, b, c, d) == (pstateSourcePos a', b', c', d')
+  _ == _ = False
 
 -- | A statement to introduce identifiers from 
 -- other modules into the namespace. 
