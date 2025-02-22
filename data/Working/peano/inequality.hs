@@ -16,4 +16,3 @@ gtImpGte : forall a : nat, forall b : nat, l.implies (greaterThan a b) (greaterT
         fun t : Prop => fun pa : (forall v : nat, forall p5 : natEqual (add b v) a, t) 
          => pa (succ n) p2
          );
--- need universe polymorphism aaaaaaaaaaaaaaah
