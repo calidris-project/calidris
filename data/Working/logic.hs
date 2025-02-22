@@ -17,10 +17,6 @@ a_and_b_implies_b_and_a
 
 bottom = forall a : Prop, a; 
 
-
---  Can probably lift Set to a higher type
--- wooooooooooooooo 
-
 exists 
   =  fun a : Set
   => fun propGen : (forall b : a, Prop) 
